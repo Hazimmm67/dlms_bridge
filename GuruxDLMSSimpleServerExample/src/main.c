@@ -107,6 +107,12 @@ static gxAssociationLogicalName associationLow;
 static gxAssociationLogicalName associationHigh;
 static gxAssociationLogicalName associationHighGMac;
 static gxRegister activePowerL1;
+static gxRegister activePowerL1;
+static gxRegister frequency;
+static gxRegister voltageL1;
+static gxRegister currentL1;
+static gxRegister powerFactorL1;
+static gxRegister reactivePowerL1;
 static gxScriptTable scriptTableGlobalMeterReset;
 static gxScriptTable scriptTableDisconnectControl;
 static gxScriptTable scriptTableActivateTestMode;
@@ -127,7 +133,7 @@ static gxSecuritySetup securitySetupHighGMac;
 
 static gxObject* ALL_OBJECTS[] = { BASE(associationNone), BASE(associationLow), BASE(associationHigh), BASE(associationHighGMac), BASE(securitySetupHigh), BASE(securitySetupHighGMac),
                                    BASE(ldn), BASE(sapAssignment), BASE(eventCode),
-                                   BASE(clock1), BASE(activePowerL1), BASE(pushSetup), BASE(scriptTableGlobalMeterReset), BASE(scriptTableDisconnectControl),
+                                   BASE(clock1), BASE(activePowerL1), BASE(frequency), BASE(voltageL1), BASE(currentL1), BASE(powerFactorL1), BASE(reactivePowerL1), BASE(pushSetup), BASE(scriptTableGlobalMeterReset), BASE(scriptTableDisconnectControl),
                                    BASE(scriptTableActivateTestMode), BASE(scriptTableActivateNormalMode), BASE(loadProfile), BASE(eventLog), BASE(hdlc),
                                    BASE(disconnectControl), BASE(actionScheduleDisconnectOpen), BASE(actionScheduleDisconnectClose), BASE(unixTime), BASE(invocationCounter)
 };
@@ -148,6 +154,16 @@ gxSerializerIgnore NON_SERIALIZED_OBJECTS[] = {
 static uint32_t executeTime = 0;
 
 static uint16_t activePowerL1Value = 0;
+
+static uint16_t frequencyValue = 50; 
+
+static uint16_t voltageL1Value = 230;
+
+static uint16_t currentL1Value = 15;
+
+static uint16_t powerFactorL1Value = 98;
+
+static uint16_t reactivePowerL1Value = 5;
 
 typedef enum
 {
@@ -904,6 +920,89 @@ int addRegisterObject()
     return ret;
 }
 
+///////////////////////////////////////////////////////////////////////
+//This method adds frequency register object.
+///////////////////////////////////////////////////////////////////////
+int addFrequencyObject()
+{
+    int ret;
+    const unsigned char ln[6] = { 1, 1, 14, 25, 0, 255 };
+
+    if ((ret = INIT_OBJECT(frequency, DLMS_OBJECT_TYPE_REGISTER, ln)) == 0)
+    {
+        GX_UINT16_BYREF(frequency.value, frequencyValue);
+
+        // Frequency is reported directly in Hz.
+        frequency.scaler = 0;
+        frequency.unit = 44;
+    }
+    return ret;
+}
+
+int addVoltageL1Object()
+{
+    int ret;
+    const unsigned char ln[6] = {1, 1, 32, 25, 0, 255};
+
+    if ((ret = INIT_OBJECT(voltageL1,
+        DLMS_OBJECT_TYPE_REGISTER,
+        ln)) == 0)
+    {
+        GX_UINT16_BYREF(voltageL1.value, voltageL1Value);
+        voltageL1.scaler = 0;
+        voltageL1.unit = 35;
+    }
+    return ret;
+}
+
+int addCurrentL1Object()
+{
+    int ret;
+    const unsigned char ln[6] = {1, 1, 31, 25, 0, 255};
+
+    if ((ret = INIT_OBJECT(currentL1,
+        DLMS_OBJECT_TYPE_REGISTER,
+        ln)) == 0)
+    {
+        GX_UINT16_BYREF(currentL1.value, currentL1Value);
+        currentL1.scaler = 0;
+        currentL1.unit = 33;
+    }
+    return ret;
+}
+
+int addPowerFactorL1Object()
+{
+    int ret;
+    const unsigned char ln[6] = {1, 1, 33, 25, 0, 255};
+
+    if ((ret = INIT_OBJECT(powerFactorL1,
+        DLMS_OBJECT_TYPE_REGISTER,
+        ln)) == 0)
+    {
+        GX_UINT16_BYREF(powerFactorL1.value, powerFactorL1Value);
+        powerFactorL1.scaler = -2;
+        powerFactorL1.unit = 255;
+    }
+    return ret;
+}
+
+int addReactivePowerL1Object()
+{
+    int ret;
+    const unsigned char ln[6] = {1, 1, 23, 25, 0, 255};
+
+    if ((ret = INIT_OBJECT(reactivePowerL1,
+        DLMS_OBJECT_TYPE_REGISTER,
+        ln)) == 0)
+    {
+        GX_UINT16_BYREF(reactivePowerL1.value, reactivePowerL1Value);
+        reactivePowerL1.scaler = 0;
+        reactivePowerL1.unit = 32;
+    }
+    return ret;
+}
+
 uint16_t readActivePowerValue()
 {
     return ++activePowerL1Value;
@@ -1238,6 +1337,11 @@ int createObjects()
         (ret = addInvocationCounter()) != 0 ||
         (ret = addClockObject()) != 0 ||
         (ret = addRegisterObject()) != 0 ||
+        (ret = addFrequencyObject()) != 0 ||
+        (ret = addVoltageL1Object()) != 0 ||
+        (ret = addCurrentL1Object()) != 0 ||
+        (ret = addPowerFactorL1Object()) != 0 ||
+        (ret = addReactivePowerL1Object()) != 0 ||
         (ret = addAssociationNone()) != 0 ||
         (ret = addAssociationLow()) != 0 ||
         (ret = addAssociationHigh()) != 0 ||
